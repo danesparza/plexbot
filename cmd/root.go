@@ -38,10 +38,18 @@ func init() {
 	// will be global for your application.
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/plexbot.yaml)")
 	RootCmd.PersistentFlags().StringVar(&plexTVDirectory, "tvdir", "", "Base Plex TV directory")
+
+	//	Emit our config settings that we're using
+
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	//	Set our defaults
+	viper.SetDefault("plex.tvpath", "d:\\tv")
+	viper.SetDefault("preprocess.command", []string{})
+	viper.SetDefault("postprocess.command", []string{})
+
 	viper.SetConfigName("plexbot") // name of config file (without extension)
 	viper.AddConfigPath(".")       // adding current directory as search path
 	viper.AddConfigPath("$HOME")   // adding home directory as search path
