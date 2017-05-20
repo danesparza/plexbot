@@ -15,9 +15,10 @@ var yamlDefault = []byte(`
 plex:
   tvpath: d:\tv
 preprocess:
-  command:
+  - somecommand.exe
 postprocess:
-  command:
+  - someothercommand.exe
+	- somethingelse.exe
 `)
 
 var jsonDefault = []byte(`{

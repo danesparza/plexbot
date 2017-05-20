@@ -1,0 +1,13 @@
+plex:
+  tvpath: d:\tv
+
+# To have a process run before the 'move' process, 
+# uncomment this section and add it here:
+# preprocess:
+#  - somecommand.exe
+
+# To have a process run before the 'move' process, 
+# uncomment this section and add it here:
+postprocess:
+  - someothercommand.exe
+	- somethingelse.exe

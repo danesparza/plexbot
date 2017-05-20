@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -11,6 +12,10 @@ import (
 var (
 	cfgFile         string
 	plexTVDirectory string
+
+	// ProblemWithConfigFile indicates whether or not there was a problem
+	// loading the config
+	ProblemWithConfigFile bool
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -36,11 +41,8 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/plexbot.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is plexbot.yaml)")
 	RootCmd.PersistentFlags().StringVar(&plexTVDirectory, "tvdir", "", "Base Plex TV directory")
-
-	//	Emit our config settings that we're using
-
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -59,8 +61,14 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	}
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	// If a config file is found, read it in
+	// otherwise, make note that there was a problem
+	if err := viper.ReadInConfig(); err != nil {
+		ProblemWithConfigFile = true
+	}
+
+	//	If we have a config file, report it:
+	if viper.ConfigFileUsed() != "" {
+		log.Println("[INFO] Using config file:", viper.ConfigFileUsed())
 	}
 }

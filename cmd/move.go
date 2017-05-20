@@ -8,6 +8,7 @@ import (
 
 	"github.com/danesparza/dlshow"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -38,12 +39,16 @@ D:\TV\Once Upon a Time\Season 3\s3e01.mkv`,
 }
 
 func parseAndMove(cmd *cobra.Command, args []string) {
+
+	//	Emit our plex tv directory
+	log.Printf("[INFO] Plex TV library path: %s\n", viper.GetString("plex.tvpath"))
+
 	//	Make sure we were called with a directory
 	if len(args) < 1 {
 		fmt.Println(moveNoFile)
 		return
 	}
-	log.Printf("[INFO] Looking for files in: %v", args[0])
+	log.Printf("[INFO] Looking for files in: %v...", args[0])
 
 	//	See if the source directory exists
 	if _, err := os.Stat(args[0]); os.IsNotExist(err) {
@@ -55,13 +60,13 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, args[0])
 
 	for _, file := range filesToMove {
-		log.Printf("[INFO] Found file %v...", file)
+		log.Printf("[INFO] - Found file %v...", file)
 
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
 			newFile := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
 			newFile = filepath.Join(showInfo.ShowName, newFile)
-			log.Printf("[INFO] Moving to %v", newFile)
+			log.Printf("[INFO] -- Moving to %v", newFile)
 		}
 
 	}
