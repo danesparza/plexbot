@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 
+	"github.com/danesparza/dlshow"
 	"github.com/spf13/cobra"
 )
 
@@ -47,15 +47,23 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 	//	See if the source directory exists
 	if _, err := os.Stat(args[0]); os.IsNotExist(err) {
-		log.Printf("The directory doesn't exist: %v", args[0])
+		log.Printf("[ERROR] The directory doesn't exist: %v", args[0])
 		return
 	}
 
 	//	If it does, see what movie files it contains:
-	filesToMove := filesWithExtension([]string{"mp4", "mkv", "avi"}, "")
+	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, args[0])
 
 	for _, file := range filesToMove {
-		log.Printf("[INFO] Moving file %v...", file)
+		log.Printf("[INFO] Found file %v...", file)
+
+		//	Parse show information:
+		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
+			newFile := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
+			newFile = filepath.Join(showInfo.ShowName, newFile)
+			log.Printf("[INFO] Moving to %v", newFile)
+		}
+
 	}
 }
 
@@ -63,6 +71,8 @@ func init() {
 	RootCmd.AddCommand(moveCmd)
 }
 
+// filesWithExtension returns a list of files that contain the given
+// extensions in the requested baseDirectory
 func filesWithExtension(exts []string, baseDirectory string) []string {
 	//	Sanity check that the source directory seems to exist
 	if _, err := os.Stat(baseDirectory); os.IsNotExist(err) {
@@ -71,16 +81,12 @@ func filesWithExtension(exts []string, baseDirectory string) []string {
 
 	var files []string
 	filepath.Walk(baseDirectory, func(path string, f os.FileInfo, _ error) error {
+		//	If it's a file...
 		if !f.IsDir() {
-			//	For each of the extensions passed...
-			for _, ext := range exts {
-
-				//	If the file seems to match...
-				r, err := regexp.MatchString(ext, f.Name())
-				if err == nil && r {
-					//	Add it to the pile of file results
-					files = append(files, f.Name())
-				}
+			//	See if its extension matches one we're looking for...
+			if contains(exts, filepath.Ext(f.Name())) {
+				//	If it does, Add it to the pile of file results
+				files = append(files, path)
 			}
 		}
 		return nil
@@ -88,4 +94,14 @@ func filesWithExtension(exts []string, baseDirectory string) []string {
 
 	//	Return the list of files found
 	return files
+}
+
+// contains returns true if the target slice contains the item 'e'
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
