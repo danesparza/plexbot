@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/danesparza/dlshow"
 	"github.com/spf13/cobra"
@@ -66,12 +67,25 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 	//	If it does, see what movie files it contains:
 	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, sourceBaseDir)
+	log.Printf("[INFO] Found %d file(s) to process", len(filesToMove))
 
 	for _, file := range filesToMove {
 		log.Printf("[INFO] - Found file %v...", file)
 
+		//	Create our map of replacement tokens and add
+		//	our first token:
+		tokens := make(map[string]string)
+		tokens["{oldfilepath}"] = file
+
 		//	Perform preprocessing like this:
 		//	http://stackoverflow.com/a/20438245/19020
+		if viper.InConfig("preprocess") {
+			preProcessItems := viper.GetStringSlice("preprocess")
+			for _, item := range preProcessItems {
+				item = formatTokenizedString(item, tokens)
+				log.Printf("[INFO] -- Executing %v", item)
+			}
+		}
 
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
@@ -81,6 +95,9 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 			newPath := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir)
 			newFileName := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
 			newFile := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir, newFileName)
+
+			//	Add to our replacement tokens:
+			tokens["{newfilepath}"] = newFile
 
 			//	Make sure the new path exists:
 			os.MkdirAll(newPath, os.ModePerm)
@@ -93,6 +110,14 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 			//	Perform postprocessing like this:
 			//	http://stackoverflow.com/a/20438245/19020
+			if viper.InConfig("postprocess") {
+				postProcessItems := viper.GetStringSlice("postprocess")
+				for _, item := range postProcessItems {
+					item = formatTokenizedString(item, tokens)
+					log.Printf("[INFO] -- Executing %v", item)
+				}
+			}
+
 		}
 
 	}
@@ -135,4 +160,17 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// formatTokenizedString will format a string containing tokens by replacing
+// the tokens with their actual values and returning the new string
+func formatTokenizedString(originalString string, tokens map[string]string) string {
+	retval := originalString
+
+	//	Replace each token with its value:
+	for token, value := range tokens {
+		retval = strings.Replace(retval, token, value, -1)
+	}
+
+	return retval
 }
