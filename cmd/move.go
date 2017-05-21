@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -115,6 +116,18 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 				for _, item := range postProcessItems {
 					item = formatTokenizedString(item, tokens)
 					log.Printf("[INFO] -- Executing %v", item)
+
+					fmt.Println("command is ", item)
+					// splitting head => g++ parts => rest of the command
+					parts := strings.Fields(item)
+					head := parts[0]
+					parts = parts[1:len(parts)]
+
+					out, err := exec.Command(head, parts...).Output()
+					if err != nil {
+						fmt.Printf("%s", err)
+					}
+					fmt.Printf("%s", out)
 				}
 			}
 
