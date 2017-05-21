@@ -1,13 +1,15 @@
 plex:
   tvpath: c:\temp\tv
 
+# Token replacement for preprocess and postprocess sections:
+# {filepath} - Replaced with full path of file
+
 # To have a process run before the 'move' process, 
 # uncomment this section and add it here:
 # preprocess:
-#  - somecommand.exe
+#  - somecommand.exe {filepath}
 
 # To have a process run before the 'move' process, 
 # uncomment this section and add it here:
 postprocess:
-  - someothercommand.exe
-  - somethingelse.exe
+  - qbittorrentremove.exe {filepath}

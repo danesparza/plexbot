@@ -70,12 +70,29 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	for _, file := range filesToMove {
 		log.Printf("[INFO] - Found file %v...", file)
 
+		//	Perform preprocessing like this:
+		//	http://stackoverflow.com/a/20438245/19020
+
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
-			newFile := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
+
+			//	Format the new filepath:
 			seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
-			newFile = filepath.Join(destBaseDir, showInfo.ShowName, seasonDir, newFile)
+			newPath := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir)
+			newFileName := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
+			newFile := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir, newFileName)
+
+			//	Make sure the new path exists:
+			os.MkdirAll(newPath, os.ModePerm)
+
+			//	Move the file
 			log.Printf("[INFO] -- Moving to %v", newFile)
+			if err := os.Rename(file, newFile); err != nil {
+				log.Printf("[ERROR] %v", err)
+			}
+
+			//	Perform postprocessing like this:
+			//	http://stackoverflow.com/a/20438245/19020
 		}
 
 	}
