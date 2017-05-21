@@ -14,11 +14,17 @@ var (
 var yamlDefault = []byte(`
 plex:
   tvpath: d:\tv
-preprocess:
-  - somecommand.exe
+
+# To have a process run before the 'move' process, 
+# uncomment this section and add it here:
+# preprocess:
+#  - somecommand.exe
+
+# To have a process run before the 'move' process, 
+# uncomment this section and add it here:
 postprocess:
   - someothercommand.exe
-	- somethingelse.exe
+  - somethingelse.exe
 `)
 
 var jsonDefault = []byte(`{

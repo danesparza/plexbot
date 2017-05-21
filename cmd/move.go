@@ -51,13 +51,21 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	log.Printf("[INFO] Looking for files in: %v...", args[0])
 
 	//	See if the source directory exists
-	if _, err := os.Stat(args[0]); os.IsNotExist(err) {
-		log.Printf("[ERROR] The directory doesn't exist: %v", args[0])
+	sourceBaseDir := args[0]
+	if _, err := os.Stat(sourceBaseDir); os.IsNotExist(err) {
+		log.Printf("[ERROR] The directory doesn't exist: %v", sourceBaseDir)
+		return
+	}
+
+	//	See if the destination directory exists
+	destBaseDir := viper.GetString("plex.tvpath")
+	if _, err := os.Stat(destBaseDir); err != nil {
+		log.Printf("[ERROR] The plex TV directory doesn't exist: %v", destBaseDir)
 		return
 	}
 
 	//	If it does, see what movie files it contains:
-	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, args[0])
+	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, sourceBaseDir)
 
 	for _, file := range filesToMove {
 		log.Printf("[INFO] - Found file %v...", file)
@@ -65,7 +73,8 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
 			newFile := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
-			newFile = filepath.Join(showInfo.ShowName, newFile)
+			seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
+			newFile = filepath.Join(destBaseDir, showInfo.ShowName, seasonDir, newFile)
 			log.Printf("[INFO] -- Moving to %v", newFile)
 		}
 

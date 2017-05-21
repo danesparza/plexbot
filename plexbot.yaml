@@ -1,5 +1,5 @@
 plex:
-  tvpath: d:\tv
+  tvpath: c:\temp\tv
 
 # To have a process run before the 'move' process, 
 # uncomment this section and add it here:
@@ -10,4 +10,4 @@ plex:
 # uncomment this section and add it here:
 postprocess:
   - someothercommand.exe
-	- somethingelse.exe
+  - somethingelse.exe
