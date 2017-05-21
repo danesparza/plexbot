@@ -41,6 +41,10 @@ D:\TV\Once Upon a Time\Season 3\s3e01.mkv`,
 }
 
 func parseAndMove(cmd *cobra.Command, args []string) {
+	//	If we have a config file, report it:
+	if viper.ConfigFileUsed() != "" {
+		log.Println("[INFO] Using config file:", viper.ConfigFileUsed())
+	}
 
 	//	Emit our plex tv directory
 	log.Printf("[INFO] Plex TV library path: %s\n", viper.GetString("plex.tvpath"))
@@ -85,6 +89,13 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 			for _, item := range preProcessItems {
 				item = formatTokenizedString(item, tokens)
 				log.Printf("[INFO] -- Executing %v", item)
+
+				// splitting head => g++ parts => rest of the command
+				parts := strings.Fields(item)
+				head := parts[0]
+				parts = parts[1:len(parts)]
+
+				exec.Command(head, parts...).Output()
 			}
 		}
 
@@ -117,17 +128,11 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 					item = formatTokenizedString(item, tokens)
 					log.Printf("[INFO] -- Executing %v", item)
 
-					fmt.Println("command is ", item)
 					// splitting head => g++ parts => rest of the command
 					parts := strings.Fields(item)
 					head := parts[0]
 					parts = parts[1:len(parts)]
-
-					out, err := exec.Command(head, parts...).Output()
-					if err != nil {
-						fmt.Printf("%s", err)
-					}
-					fmt.Printf("%s", out)
+					exec.Command(head, parts...).Output()
 				}
 			}
 

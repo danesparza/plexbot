@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -65,10 +64,5 @@ func initConfig() {
 	// otherwise, make note that there was a problem
 	if err := viper.ReadInConfig(); err != nil {
 		ProblemWithConfigFile = true
-	}
-
-	//	If we have a config file, report it:
-	if viper.ConfigFileUsed() != "" {
-		log.Println("[INFO] Using config file:", viper.ConfigFileUsed())
 	}
 }

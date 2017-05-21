@@ -15,55 +15,56 @@ var yamlDefault = []byte(`
 plex:
   tvpath: d:\tv
 
+# Token replacement for preprocess and postprocess sections:
+# {oldfilepath} - Replaced with full path of existing file in source directory
+# {newfilepath} - Replaced with full path of moved file in destination directory
+
 # To have a process run before the 'move' process, 
 # uncomment this section and add it here:
 # preprocess:
-#  - somecommand.exe
+#  - somecommand.exe {filepath}
 
 # To have a process run before the 'move' process, 
 # uncomment this section and add it here:
 postprocess:
-  - someothercommand.exe
-  - somethingelse.exe
+  - qbittorrentremove.exe -file "{oldfilepath}"
 `)
 
 var jsonDefault = []byte(`{
-  "server" : {
-    "port": "3000"
+  "plex": {
+    "tvpath": "d:\\tv"
   },
-  "datastore" : {
-    "type": "boltdb",
-    "database": "config.db"
-  }
+	/*
+	Token replacement for preprocess and postprocess sections:
+	{oldfilepath} - Replaced with full path of existing file in source directory
+	{newfilepath} - Replaced with full path of moved file in destination directory
+	*/
+  "postprocess": [
+    "qbittorrentremove.exe -file \"{oldfilepath}\""
+  ]
 }`)
 
 // defaultsCmd represents the defaults command
 var defaultsCmd = &cobra.Command{
 	Use:   "defaults",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Prints default plexbot configuration files",
+	Long: `Use this to create a default configuration file for plexbot. 
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Example:
+plexbot defaults > plexbot.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("defaults called")
+		if jsonConfig {
+			fmt.Printf("%s", jsonDefault)
+		} else if yamlConfig {
+			fmt.Printf("%s", yamlDefault)
+		}
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(defaultsCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// defaultsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// defaultsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	defaultsCmd.Flags().BoolVarP(&jsonConfig, "json", "j", false, "Create a JSON configuration file")
+	defaultsCmd.Flags().BoolVarP(&yamlConfig, "yaml", "y", true, "Create a YAML configuration file")
 
 }
