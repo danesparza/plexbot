@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -116,7 +117,7 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 			//	Move the file
 			log.Printf("[INFO] -- Moving to %v", newFile)
-			if err := os.Rename(file, newFile); err != nil {
+			if err := CopyFile(file, newFile, os.ModePerm); err != nil {
 				log.Printf("[ERROR] %v", err)
 			}
 
@@ -191,4 +192,26 @@ func formatTokenizedString(originalString string, tokens map[string]string) stri
 	}
 
 	return retval
+}
+
+// CopyFile copies the contents from src to dst using io.Copy.
+// If dst does not exist, CopyFile creates it with permissions perm;
+// otherwise CopyFile truncates it before writing.
+func CopyFile(src, dst string, perm os.FileMode) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return
+	}
+	defer func() {
+		if e := out.Close(); e != nil {
+			err = e
+		}
+	}()
+	_, err = io.Copy(out, in)
+	return
 }
