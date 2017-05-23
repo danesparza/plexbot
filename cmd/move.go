@@ -103,6 +103,11 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
 
+			//	Add our showinfo tokens:
+			tokens["{showname}"] = showInfo.ShowName
+			tokens["{showseasonnumber}"] = string(showInfo.SeasonNumber)
+			tokens["{showepisodenumber}"] = string(showInfo.EpisodeNumber)
+
 			//	Format the new filepath:
 			seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
 			newPath := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir)
