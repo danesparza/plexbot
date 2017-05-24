@@ -2,6 +2,8 @@
 Simple app to help organize tv shows and movies into the Plex naming format
 
 # Quick start
+Grab the [latest release](https://github.com/danesparza/plexbot/releases/latest) for your platform - it's just a single binary
+
 Generate a config file:
 `plexbot defaults > plexbot.yaml`
 
