@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/danesparza/dlshow"
+	"github.com/danesparza/plexbot/files"
+	"github.com/danesparza/plexbot/plugin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,6 +49,11 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	//	Emit our plex tv directory
 	log.Printf("[INFO] Plex TV library path: %s\n", viper.GetString("plex.tvpath"))
 
+	//	Create our map of replacement tokens and add
+	//	our first token:
+	tokens := make(map[string]string)
+	tokens["{tvpath}"] = viper.GetString("plex.tvpath")
+
 	//	Make sure we were called with a directory
 	if len(args) < 1 {
 		fmt.Println(moveNoFile)
@@ -72,31 +76,20 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	}
 
 	//	If it does, see what movie files it contains:
-	filesToMove := filesWithExtension([]string{".mp4", ".mkv", ".avi"}, sourceBaseDir)
+	filesToMove := files.FindWithExtension([]string{".mp4", ".mkv", ".avi"}, sourceBaseDir)
 	log.Printf("[INFO] Found %d file(s) to process", len(filesToMove))
 
 	for _, file := range filesToMove {
 		log.Printf("[INFO] - Found file %v...", file)
-
-		//	Create our map of replacement tokens and add
-		//	our first token:
-		tokens := make(map[string]string)
 		tokens["{oldfilepath}"] = file
 
-		//	Perform preprocessing like this:
-		//	http://stackoverflow.com/a/20438245/19020
+		//	Perform preprocessing
 		if viper.InConfig("preprocess") {
 			preProcessItems := viper.GetStringSlice("preprocess")
 			for _, item := range preProcessItems {
-				item = formatTokenizedString(item, tokens)
+				item = plugin.FormatTokenizedString(item, tokens)
 				log.Printf("[INFO] -- Executing %v", item)
-
-				// splitting head => g++ parts => rest of the command
-				parts := strings.Fields(item)
-				head := parts[0]
-				parts = parts[1:len(parts)]
-
-				exec.Command(head, parts...).Output()
+				plugin.ExecutePlugin(item)
 			}
 		}
 
@@ -122,23 +115,17 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 			//	Move the file
 			log.Printf("[INFO] -- Moving to %v", newFile)
-			if err := CopyFile(file, newFile, os.ModePerm); err != nil {
+			if err := files.Copy(file, newFile, os.ModePerm); err != nil {
 				log.Printf("[ERROR] %v", err)
 			}
 
-			//	Perform postprocessing like this:
-			//	http://stackoverflow.com/a/20438245/19020
+			//	Perform postprocessing
 			if viper.InConfig("postprocess") {
 				postProcessItems := viper.GetStringSlice("postprocess")
 				for _, item := range postProcessItems {
-					item = formatTokenizedString(item, tokens)
+					item = plugin.FormatTokenizedString(item, tokens)
 					log.Printf("[INFO] -- Executing %v", item)
-
-					// splitting head => g++ parts => rest of the command
-					parts := strings.Fields(item)
-					head := parts[0]
-					parts = parts[1:len(parts)]
-					exec.Command(head, parts...).Output()
+					plugin.ExecutePlugin(item)
 				}
 			}
 
@@ -149,74 +136,4 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 func init() {
 	RootCmd.AddCommand(moveCmd)
-}
-
-// filesWithExtension returns a list of files that contain the given
-// extensions in the requested baseDirectory
-func filesWithExtension(exts []string, baseDirectory string) []string {
-	//	Sanity check that the source directory seems to exist
-	if _, err := os.Stat(baseDirectory); os.IsNotExist(err) {
-		log.Panic("The directory doesn't exist " + baseDirectory)
-	}
-
-	var files []string
-	filepath.Walk(baseDirectory, func(path string, f os.FileInfo, _ error) error {
-		//	If it's a file...
-		if !f.IsDir() {
-			//	See if its extension matches one we're looking for...
-			if contains(exts, filepath.Ext(f.Name())) {
-				//	If it does, Add it to the pile of file results
-				files = append(files, path)
-			}
-		}
-		return nil
-	})
-
-	//	Return the list of files found
-	return files
-}
-
-// contains returns true if the target slice contains the item 'e'
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
-// formatTokenizedString will format a string containing tokens by replacing
-// the tokens with their actual values and returning the new string
-func formatTokenizedString(originalString string, tokens map[string]string) string {
-	retval := originalString
-
-	//	Replace each token with its value:
-	for token, value := range tokens {
-		retval = strings.Replace(retval, token, value, -1)
-	}
-
-	return retval
-}
-
-// CopyFile copies the contents from src to dst using io.Copy.
-// If dst does not exist, CopyFile creates it with permissions perm;
-// otherwise CopyFile truncates it before writing.
-func CopyFile(src, dst string, perm os.FileMode) (err error) {
-	in, err := os.Open(src)
-	if err != nil {
-		return
-	}
-	defer in.Close()
-	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
-	if err != nil {
-		return
-	}
-	defer func() {
-		if e := out.Close(); e != nil {
-			err = e
-		}
-	}()
-	_, err = io.Copy(out, in)
-	return
 }
