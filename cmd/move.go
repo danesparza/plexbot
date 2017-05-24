@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/danesparza/dlshow"
 	"github.com/danesparza/plexbot/files"
@@ -98,8 +99,8 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 			//	Add our showinfo tokens:
 			tokens["{showname}"] = showInfo.ShowName
-			tokens["{showseasonnumber}"] = string(showInfo.SeasonNumber)
-			tokens["{showepisodenumber}"] = string(showInfo.EpisodeNumber)
+			tokens["{showseasonnumber}"] = strconv.Itoa(showInfo.SeasonNumber)
+			tokens["{showepisodenumber}"] = strconv.Itoa(showInfo.EpisodeNumber)
 
 			//	Format the new filepath:
 			seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
