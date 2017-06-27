@@ -50,9 +50,7 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	//	Emit our plex tv directory
 	log.Printf("[INFO] Plex TV library path: %s\n", viper.GetString("plex.tvpath"))
 
-	//	Create our map of replacement tokens and add
-	//	our first token:
-	tokens := make(map[string]string)
+	//	Add the tv path to the list of tokens
 	tokens["{tvpath}"] = viper.GetString("plex.tvpath")
 
 	//	Make sure we were called with a directory

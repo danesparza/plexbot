@@ -9,12 +9,15 @@ import (
 )
 
 var (
-	cfgFile         string
-	plexTVDirectory string
+	cfgFile string
+	hash    string
 
 	// ProblemWithConfigFile indicates whether or not there was a problem
 	// loading the config
 	ProblemWithConfigFile bool
+
+	//	Create our map of replacement tokens
+	tokens = make(map[string]string)
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -41,7 +44,7 @@ func init() {
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is plexbot.yaml)")
-	RootCmd.PersistentFlags().StringVar(&plexTVDirectory, "tvdir", "", "Base Plex TV directory")
+	RootCmd.PersistentFlags().StringVar(&hash, "hash", "", "Torrent hash used to identify the torrent")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -59,6 +62,9 @@ func initConfig() {
 	if cfgFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(cfgFile)
 	}
+
+	//	Set the hash token
+	tokens["{hash}"] = hash
 
 	// If a config file is found, read it in
 	// otherwise, make note that there was a problem
