@@ -118,7 +118,7 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 				log.Printf("[ERROR] %v", err)
 			}
 
-			//	Perform postprocessing
+			//	Perform 'postprocess each' items
 			if viper.InConfig("postprocess") {
 				postProcessItems := viper.GetStringSlice("postprocess")
 				for _, item := range postProcessItems {
@@ -130,6 +130,16 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 		}
 
+	}
+
+	//	Perform 'postprocess all' items
+	if viper.InConfig("postprocessall") {
+		postProcessItems := viper.GetStringSlice("postprocessall")
+		for _, item := range postProcessItems {
+			item = plugin.FormatTokenizedString(item, tokens)
+			log.Printf("[INFO] -- Executing %v", item)
+			plugin.ExecutePlugin(item)
+		}
 	}
 }
 
