@@ -40,7 +40,7 @@ test:
     - go test -v -race $PACKAGE_PATH/... | go-junit-report > $CIRCLE_TEST_REPORTS/junit/junit.xml
     # Multi-platform compile with version information
     - cd $PROJECT_DIR
-    - gox -arch="386 amd64 arm" -os="darwin linux windows" -output "${CIRCLE_ARTIFACTS}/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}" $PACKAGE_PATH/...     
+    - gox -arch="386 amd64" -os="darwin linux windows" -output "${CIRCLE_ARTIFACTS}/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}" $PACKAGE_PATH/...     
 deployment:
   release:
     branch: master
