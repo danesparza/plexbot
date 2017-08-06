@@ -15,7 +15,7 @@ var yamlDefault = []byte(`
 plex:
   tvpath: d:\tv
 
-# Token replacement for preprocess and postprocess sections:
+# Token replacement for preprocess, postprocess and postprocessall sections:
 # {oldfilepath} - Replaced with full path of existing file in source directory
 # {newfilepath} - Replaced with full path of moved file in destination directory
 
@@ -24,10 +24,15 @@ plex:
 # preprocess:
 #  - somecommand.exe {filepath}
 
-# To have a process run before the 'move' process, 
+# To have a process run after the 'move' process, 
 # uncomment this section and add it here:
 postprocess:
-  - qbittorrentremove.exe -file "{oldfilepath}"
+	- qbittorrentremove.exe -file "{oldfilepath}
+
+# To have a process run after all of the 'move' processes
+# uncomment this section and add it here
+# postprocessall:
+#  - someothercommand.exe {filepath}"
 `)
 
 var jsonDefault = []byte(`{
@@ -35,7 +40,7 @@ var jsonDefault = []byte(`{
     "tvpath": "d:\\tv"
   },
 	/*
-	Token replacement for preprocess and postprocess sections:
+	Token replacement for preprocess, postprocess, and postprocessall sections:
 	{oldfilepath} - Replaced with full path of existing file in source directory
 	{newfilepath} - Replaced with full path of moved file in destination directory
 	*/
