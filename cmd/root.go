@@ -51,6 +51,7 @@ func init() {
 func initConfig() {
 	//	Set our defaults
 	viper.SetDefault("plex.tvpath", "d:\\tv")
+	viper.SetDefault("plex.errorpath", "d:\\errors")
 	viper.SetDefault("preprocess.command", []string{})
 	viper.SetDefault("postprocess.command", []string{})
 
