@@ -49,9 +49,11 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 
 	//	Emit our plex tv directory
 	log.Printf("[INFO] Plex TV library path: %s\n", viper.GetString("plex.tvpath"))
+	log.Printf("[INFO] Errors path: %s\n", viper.GetString("plex.errorpath"))
 
 	//	Add the tv path to the list of tokens
 	tokens["{tvpath}"] = viper.GetString("plex.tvpath")
+	tokens["{errorpath}"] = viper.GetString("plex.errorpath")
 
 	//	Make sure we were called with a directory
 	if len(args) < 1 {
@@ -66,6 +68,9 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 		log.Printf("[ERROR] The directory doesn't exist: %v", sourceBaseDir)
 		return
 	}
+
+	//	Get the errors directory
+	errorBaseDir := viper.GetString("plex.errorpath")
 
 	//	See if the destination directory exists
 	destBaseDir := viper.GetString("plex.tvpath")
@@ -96,8 +101,24 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
 
 			//	If we can't parse the filename,
-			//	just go to the next filename
+			//	we should move it to a safe place
 			if showInfo.ParseType == 0 {
+
+				//	Get just the filename we're trying to process:
+				_, currentFileName := filepath.Split(file)
+
+				//	Format the filename to tuck away to the errors directory:
+				errorFile := filepath.Join(errorBaseDir, currentFileName)
+
+				//	Make sure the errors path exists:
+				os.MkdirAll(errorBaseDir, os.ModePerm)
+
+				//	Copy the file to the error files path
+				if err := files.Copy(file, errorFile, os.ModePerm); err != nil {
+					log.Printf("[ERROR] %v", err)
+				}
+
+				//	Move to the next file...
 				continue
 			}
 

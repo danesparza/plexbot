@@ -13,7 +13,8 @@ var (
 
 var yamlDefault = []byte(`
 plex:
-  tvpath: d:\tv
+	tvpath: d:\tv
+	errorpath: d:\errors
 
 # Token replacement for preprocess, postprocess and postprocessall sections:
 # {oldfilepath} - Replaced with full path of existing file in source directory
@@ -37,7 +38,8 @@ postprocess:
 
 var jsonDefault = []byte(`{
   "plex": {
-    "tvpath": "d:\\tv"
+		"tvpath": "d:\\tv",
+		"errorpath": "d:\\errors"
   },
 	/*
 	Token replacement for preprocess, postprocess, and postprocessall sections:
