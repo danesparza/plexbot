@@ -95,6 +95,12 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 		//	Parse show information:
 		if showInfo, err := dlshow.GetEpisodeInfo(file); err == nil {
 
+			//	If we can't parse the filename,
+			//	just go to the next filename
+			if showInfo.ParseType == 0 {
+				continue
+			}
+
 			//	Add our showinfo tokens:
 			tokens["{showname}"] = showInfo.ShowName
 			tokens["{showseasonnumber}"] = strconv.Itoa(showInfo.SeasonNumber)
