@@ -6,8 +6,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var buildVersion = "Unknown"
-var commitID string
+// BuildVersion is the app version number at build time
+var BuildVersion = "Unknown"
+
+// CommitID is the SHA commit for the compiled app at build time
+var CommitID string
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -15,11 +18,11 @@ var versionCmd = &cobra.Command{
 	Short: "Shows the version information",
 	Run: func(cmd *cobra.Command, args []string) {
 		//	Show the version number
-		fmt.Printf("\nPlexbot version %s", buildVersion)
+		fmt.Printf("\nPlexbot version %s", BuildVersion)
 
-		//	Show the commitID if available:
-		if commitID != "" {
-			fmt.Printf(" (%s)", commitID[:7])
+		//	Show the CommitID if available:
+		if CommitID != "" {
+			fmt.Printf(" (%s)", CommitID[:7])
 		}
 
 		//	Trailing space and newline
