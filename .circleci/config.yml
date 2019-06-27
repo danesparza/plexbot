@@ -1,0 +1,44 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.9
+      
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      # - image: circleci/postgres:9.4
+    environment:
+      PACKAGE_PATH: "github.com/danesparza/plexbot"
+
+    working_directory: /go/src/github.com/danesparza/plexbot
+    steps:
+      - checkout
+
+      - run:
+         name: Install 'dep' tool
+         command: go get -u github.com/golang/dep/cmd/dep
+      
+      - run:
+         name: Get dependencies
+         command: dep ensure
+
+      - run:
+         name: Get compiler tool
+         command: go get github.com/mitchellh/gox
+
+      - run:
+         name: Get release tool
+         command: go get github.com/tcnksm/ghr
+
+      - run:
+         name: Create binaries for all platforms
+         command: mkdir -p /tmp/binaries; gox -arch="386 amd64" -os="darwin linux windows" -ldflags "-X $PACKAGE_PATH/cmd.BuildVersion=1.0.$CIRCLE_BUILD_NUM -X $PACKAGE_PATH/cmd.CommitID=$CIRCLE_SHA1" -output "/tmp/binaries/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}" $PACKAGE_PATH/...
+                                          
+      - run: 
+         name: Push the release to Github
+         command: ghr -prerelease -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME v1.0.$CIRCLE_BUILD_NUM /tmp/binaries/ || true
