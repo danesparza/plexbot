@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -72,4 +73,14 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		ProblemWithConfigFile = true
 	}
+}
+
+// properTitle returns the proper title case for a given string
+func properTitle(input string) string {
+	words := strings.Fields(input)
+
+	for index, word := range words {
+		words[index] = strings.Title(word)
+	}
+	return strings.Join(words, " ")
 }

@@ -123,15 +123,35 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 			}
 
 			//	Add our showinfo tokens:
-			tokens["{showname}"] = showInfo.ShowName
-			tokens["{showseasonnumber}"] = strconv.Itoa(showInfo.SeasonNumber)
-			tokens["{showepisodenumber}"] = strconv.Itoa(showInfo.EpisodeNumber)
+			tokens["{showname}"] = properTitle(showInfo.ShowName)
 
-			//	Format the new filepath:
-			seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
-			newPath := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir)
-			newFileName := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
-			newFile := filepath.Join(destBaseDir, showInfo.ShowName, seasonDir, newFileName)
+			//	Set the default file / path
+			newFile := "s0e0.information-not-found"
+			newPath := filepath.Join(destBaseDir, properTitle(showInfo.ShowName))
+
+			if showInfo.SeasonNumber == 0 && showInfo.EpisodeNumber == 0 && showInfo.AiredYear != 0 {
+				//	If we don't have season or episode, but have 'aired year'
+				//	just use the
+				tokens["{showseasonnumber}"] = strconv.Itoa(showInfo.AiredYear)
+				tokens["{showepisodenumber}"] = fmt.Sprintf("%v-%v-%v", showInfo.AiredYear, showInfo.AiredMonth, showInfo.AiredDay)
+
+				//	Format the new filepath:
+				seasonDir := fmt.Sprintf("Season %d", showInfo.AiredYear)
+				newPath = filepath.Join(destBaseDir, properTitle(showInfo.ShowName), seasonDir)
+				newFileName := fmt.Sprintf("%v %d-%02d-%02d%v", properTitle(showInfo.ShowName), showInfo.AiredYear, showInfo.AiredMonth, showInfo.AiredDay, filepath.Ext(file))
+				newFile = filepath.Join(newPath, newFileName)
+
+			} else {
+				//	We most likely have a traditional season/episode format
+				tokens["{showseasonnumber}"] = strconv.Itoa(showInfo.SeasonNumber)
+				tokens["{showepisodenumber}"] = strconv.Itoa(showInfo.EpisodeNumber)
+
+				//	Format the new filepath:
+				seasonDir := fmt.Sprintf("Season %d", showInfo.SeasonNumber)
+				newPath = filepath.Join(destBaseDir, properTitle(showInfo.ShowName), seasonDir)
+				newFileName := fmt.Sprintf("s%de%02d%v", showInfo.SeasonNumber, showInfo.EpisodeNumber, filepath.Ext(file))
+				newFile = filepath.Join(newPath, newFileName)
+			}
 
 			//	Add to our replacement tokens:
 			tokens["{newfilepath}"] = newFile
