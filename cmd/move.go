@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/danesparza/dlshow"
 	"github.com/danesparza/plexbot/files"
@@ -54,6 +55,17 @@ func parseAndMove(cmd *cobra.Command, args []string) {
 	//	Add the tv path to the list of tokens
 	tokens["{tvpath}"] = viper.GetString("plex.tvpath")
 	tokens["{errorpath}"] = viper.GetString("plex.errorpath")
+
+	//	Indicate the tags that were passed to us
+	if len(taglist) > 0 {
+		log.Printf("[INFO] Tags passed: %s\n", taglist)
+	}
+
+	//	If we have a 'noprocess' tag, indicate we found that and we're not going to continue
+	if strings.Contains(taglist, "noprocess") {
+		log.Println("[INFO] Found a 'noprocess' tag, so we won't be continuing to process this file")
+		return
+	}
 
 	//	Make sure we were called with a directory
 	if len(args) < 1 {

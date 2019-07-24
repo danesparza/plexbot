@@ -12,6 +12,8 @@ import (
 var (
 	cfgFile string
 	hash    string
+	taglist string
+	tags    []string
 
 	// ProblemWithConfigFile indicates whether or not there was a problem
 	// loading the config
@@ -46,6 +48,10 @@ func init() {
 	// will be global for your application.
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is plexbot.yaml)")
 	RootCmd.PersistentFlags().StringVar(&hash, "hash", "", "Torrent hash used to identify the torrent")
+	RootCmd.PersistentFlags().StringVar(&taglist, "tags", "", "List of tags (comma-seperated)")
+
+	//	Parse the string list of tags to a slice of tags:
+	tags = strings.Split(taglist, ",")
 }
 
 // initConfig reads in config file and ENV variables if set.
